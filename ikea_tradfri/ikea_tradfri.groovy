@@ -178,7 +178,7 @@ def setGenericName(value){
         def genericName
         
         if (value < 2450) {
-            genericName = "Warm Glow" // 2200 is named Warm gGlow by IKEA so i use that for 2200-2449
+            genericName = "Warm Glow" // 2200 is named Warm Glow by IKEA so i use that for 2200-2449
         } else if (value < 2950) {
             genericName = "Warm White" // 2700 is named Warm White by IKEA so i use that for 2450-2949
         } else if (value <= 4000) {
