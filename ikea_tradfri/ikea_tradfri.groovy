@@ -25,7 +25,7 @@
  *  For more information, please refer to <http://unlicense.org/>
  */
 metadata {
-    definition (name: "IKEA Trådfri", namespace: "edvaldeysteinsson", author: "Edvald Eysteinsson") {
+    definition (name: "IKEA Trådfri-2", namespace: "edvaldeysteinsson", author: "Edvald Eysteinsson") {
 
         capability "Actuator"
         capability "Color Temperature"
@@ -41,8 +41,6 @@ metadata {
         command "setColorWarmGlow"
         command "setColorWarmWhite"
         command "setColorCoolWhite"
-        command "setColorTemperatureAndLevel"
-        command "setNiceLevel"
 	
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS - opal 1000lm", deviceJoinName: "TRADFRI bulb E27 WS - opal 1000lm"
 	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS - opal 980lm", deviceJoinName: "TRADFRI bulb E27 WS - opal 980lm"
@@ -63,7 +61,7 @@ metadata {
                 attributeState "turningOff", label:'${name}', action:"switch.on", icon:"st.switches.light.off", backgroundColor:"#ffffff", nextState:"turningOn"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
-                attributeState "level", action:"setNiceLevel"
+                attributeState "level", action:"setLevel"
             }
         }
 
@@ -98,7 +96,6 @@ metadata {
 
 // parse events into attributes
 def parse_new(description) {
-    log.debug "parse() - $description"
     def results = []
 
     def map = description
@@ -114,8 +111,8 @@ def parse_new(description) {
 
 // Parse incoming device messages to generate events
 def parse(String description) {
-    log.debug "description is $description"
     def event = zigbee.getEvent(description)
+
     if (event) {
         if (event.name=="level" && event.value==0) {}
         else {
@@ -124,20 +121,16 @@ def parse(String description) {
             }
             sendEvent(event)
         }
-    }
-    else {
+    } else {
         def cluster = zigbee.parse(description)
 
         if (cluster && cluster.clusterId == 0x0006 && cluster.command == 0x07) {
             if (cluster.data[0] == 0x00) {
-                log.debug "ON/OFF REPORTING CONFIG RESPONSE: " + cluster
                 sendEvent(name: "checkInterval", value: 60 * 12, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
-            }
-            else {
+            } else {
                 log.warn "ON/OFF REPORTING CONFIG FAILED- error code:${cluster.data[0]}"
             }
-        }
-        else {
+        } else {
             log.warn "DID NOT PARSE MESSAGE for description : $description"
             log.debug "${cluster}"
         }
@@ -152,14 +145,10 @@ def on() {
     zigbee.on()
 }
 
-def setNiceLevel(value) {
+def setLevel(value) {
     // this will set the color temperature based on the level, 2200(0%) to 2700(100%)
     // it's a bit more like how a traditional filament bulb behaves
     zigbee.setLevel(value) + zigbee.setColorTemperature(2200 + (5*value))
-}
-
-def setLevel(value) {
-    zigbee.setLevel(value)
 }
 
 /**
@@ -174,7 +163,6 @@ def refresh() {
 }
 
 def configure() {
-    log.debug "Configuring Reporting and Bindings."
     // Device-Watch allows 2 check-in misses from device + ping (plus 1 min lag time)
     // enrolls with default periodic reporting until newer 5 min interval is confirmed
     sendEvent(name: "checkInterval", value: 2 * 10 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
@@ -198,11 +186,6 @@ def setColorCoolWhite() {
 def setColorTemperature(value) {
     setGenericName(value)
 	zigbee.setColorTemperature(value)
-}
-
-def setColorTemperatureAndLevel(value) {
-    setGenericName(value.temperature)
-	zigbee.setLevel(value.level) + zigbee.setColorTemperature(value.temperature)
 }
 
 def setGenericName(value){
