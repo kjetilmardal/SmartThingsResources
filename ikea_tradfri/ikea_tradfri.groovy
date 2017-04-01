@@ -37,18 +37,17 @@ metadata {
         capability "Light"
 
         attribute "colorName", "string"
+        
         command "setGenericName"
-        command "setColorWarmGlow"
-        command "setColorWarmWhite"
-        command "setColorCoolWhite"
+        command "setColorRelax"
+        command "setColorEveryday"
+        command "setColorFocus"
 	
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS opal 1000lm", deviceJoinName: "TRADFRI bulb E27 WS opal 1000lm"
-	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS�opal 980lm", deviceJoinName: "TRADFRI bulb E27 WS opal 980lm"
-	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS clear 950lm", deviceJoinName: "TRADFRI bulb E27 WS clear 950lm"
+    	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS�opal 980lm", deviceJoinName: "TRADFRI bulb E27 WS opal 980lm"
+    	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS clear 950lm", deviceJoinName: "TRADFRI bulb E27 WS clear 950lm"
         fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E14 WS opal 400lm", deviceJoinName: "TRADFRI bulb E14 WS opal 400lm"
-	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb GU10 WS 400lm", deviceJoinName: "TRADFRI bulb GU10 WS 400lm"
-	    
-	    
+    	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb GU10 WS 400lm", deviceJoinName: "TRADFRI bulb GU10 WS 400lm"
     }
 
     // UI tile definitions
@@ -65,32 +64,28 @@ metadata {
             }
         }
 
-        standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
-        }
-
-        controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 1, inactiveLabel: false, range:"(2200..4000)") {
+        controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 2, inactiveLabel: false, range:"(2200..4000)") {
             state "colorTemperature", action:"color temperature.setColorTemperature"
         }
         
-        valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 4, height: 1) {
+        valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "colorName", label: '${currentValue}'
         }
         
-        standardTile("colorWarmGlow", "device.default", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state "default", label:"Warm Glow", action:"setColorWarmGlow", icon:"https://github.com/edvaldeysteinsson/SmartThingsResources/blob/master/ikea_tradfri/warm_glow.png?raw=true"
+        standardTile("colorRelax", "device.default", inactiveLabel: false, width: 2, height: 2) {
+            state "default", label:"", action:"setColorRelax", backgroundColor:"#ECCF73"
         }
         
-        standardTile("colorWarmWhite", "device.default", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state "default", label:"Warm White", action:"setColorWarmWhite", icon:"https://github.com/edvaldeysteinsson/SmartThingsResources/blob/master/ikea_tradfri/warm_white.png?raw=true"
+        standardTile("colorEveryday", "device.default", inactiveLabel: false, width: 2, height: 2) {
+            state "default", label:"", action:"setColorEveryday", backgroundColor:"#FBECCB"
         }
         
-        standardTile("colorCoolWhite", "device.default", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
-            state "default", label:"Cool White", action:"setColorCoolWhite", icon:"https://github.com/edvaldeysteinsson/SmartThingsResources/blob/master/ikea_tradfri/cool_white.png?raw=true"
+        standardTile("colorFocus", "device.default", inactiveLabel: false, width: 2, height: 2) {
+            state "default", label:"", action:"setColorFocus", backgroundColor:"#F5FBFB"
         }
 
         main(["switch"])
-        details(["switch", "colorTempSliderControl", "refresh", "colorName", "colorWarmGlow", "colorWarmWhite", "colorCoolWhite"])
+        details(["switch", "colorTempSliderControl", "colorName", "colorRelax", "colorEveryday", "colorFocus"])
     }
 }
 
@@ -151,35 +146,15 @@ def setLevel(value) {
     zigbee.setLevel(value) + zigbee.setColorTemperature(2200 + (5*value))
 }
 
-/**
- * PING is used by Device-Watch in attempt to reach the Device
- * */
-def ping() {
-    return zigbee.onOffRefresh()
-}
-
-def refresh() {
-	zigbee.onOffRefresh() + zigbee.levelRefresh() + zigbee.colorTemperatureRefresh() + zigbee.onOffConfig(0, 300) + zigbee.levelConfig() + zigbee.colorTemperatureConfig()
-}
-
-def configure() {
-    // Device-Watch allows 2 check-in misses from device + ping (plus 1 min lag time)
-    // enrolls with default periodic reporting until newer 5 min interval is confirmed
-    sendEvent(name: "checkInterval", value: 2 * 10 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
-
-    // OnOff minReportTime 0 seconds, maxReportTime 5 min. Reporting interval if no activity
-    refresh()
-}
-
-def setColorWarmGlow() {
+def setColorRelax() {
     setColorTemperature(2200)
 }
 
-def setColorWarmWhite() {
+def setColorEveryday() {
     setColorTemperature(2700)
 }
 
-def setColorCoolWhite() {
+def setColorFocus() {
     setColorTemperature(4000)
 }
 
@@ -193,11 +168,11 @@ def setGenericName(value){
         def genericName
         
         if (value < 2450) {
-            genericName = "Warm Glow" // 2200 is named Warm Glow by IKEA so i use that for 2200-2449
+            genericName = "Relax" // 2200 is named Relax by IKEA so i use that for 2200-2449
         } else if (value < 2950) {
-            genericName = "Warm White" // 2700 is named Warm White by IKEA so i use that for 2450-2949
+            genericName = "Everyday" // 2700 is named Everyday by IKEA so i use that for 2450-2949
         } else if (value <= 4000) {
-            genericName = "Cool White" // 4000 is named Cool White by IKEA so i use that for 2950-4000
+            genericName = "Focus" // 4000 is named Focus by IKEA so i use that for 2950-4000
         }
         
         sendEvent(name: "colorName", value: genericName)
