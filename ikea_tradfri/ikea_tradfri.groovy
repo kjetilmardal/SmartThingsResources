@@ -25,7 +25,7 @@
  *  For more information, please refer to <http://unlicense.org/>
  */
 metadata {
-    definition (name: "IKEA Trådfri-2", namespace: "edvaldeysteinsson", author: "Edvald Eysteinsson") {
+    definition (name: "IKEA Trådfri", namespace: "edvaldeysteinsson", author: "Edvald Eysteinsson") {
 
         capability "Actuator"
         capability "Color Temperature"
