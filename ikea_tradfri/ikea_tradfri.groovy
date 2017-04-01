@@ -43,7 +43,6 @@ metadata {
         command "setColorEveryday"
         command "setColorFocus"
 	
-    	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS opal 1000lm", deviceJoinName: "TRÅDFRI bulb E27 WS opal 1000lm"
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS�opal 980lm", deviceJoinName: "TRÅDFRI bulb E27 WS opal 980lm"
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS clear 950lm", deviceJoinName: "TRÅDFRI bulb E27 WS clear 950lm"
         fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E14 WS opal 400lm", deviceJoinName: "TRÅDFRI bulb E14 WS opal 400lm"
@@ -64,12 +63,16 @@ metadata {
             }
         }
 
-        controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 2, inactiveLabel: false, range:"(2200..4000)") {
+        controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 1, inactiveLabel: false, range:"(2200..4000)") {
             state "colorTemperature", action:"color temperature.setColorTemperature"
         }
         
-        valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+        valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 4, height: 1) {
             state "colorName", label: '${currentValue}'
+        }
+        
+        standardTile("refresh", "device.refresh", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
+            state "default", label:"", action:"refresh.refresh", icon:"st.secondary.refresh"
         }
         
         standardTile("colorRelax", "device.default", inactiveLabel: false, width: 2, height: 2) {
@@ -85,7 +88,7 @@ metadata {
         }
 
         main(["switch"])
-        details(["switch", "colorTempSliderControl", "colorName", "colorRelax", "colorEveryday", "colorFocus"])
+        details(["switch", "colorTempSliderControl", "colorName", "refresh", "colorRelax", "colorEveryday", "colorFocus"])
     }
 }
 
@@ -179,6 +182,26 @@ def setGenericName(value){
     }
 }
 
+/**
+ * PING is used by Device-Watch in attempt to reach the Device
+ * */
+def ping() {
+    return zigbee.onOffRefresh()
+}
+
+def refresh() {
+	zigbee.onOffRefresh() + zigbee.levelRefresh() + zigbee.colorTemperatureRefresh() + zigbee.onOffConfig(0, 300) + zigbee.levelConfig() + zigbee.colorTemperatureConfig()
+}
+
+def configure() {
+    // Device-Watch allows 2 check-in misses from device + ping (plus 1 min lag time)
+    // enrolls with default periodic reporting until newer 5 min interval is confirmed
+    sendEvent(name: "checkInterval", value: 2 * 10 * 60 + 1 * 60, displayed: false, data: [protocol: "zigbee", hubHardwareId: device.hub.hardwareID])
+
+    // OnOff minReportTime 0 seconds, maxReportTime 5 min. Reporting interval if no activity
+    refresh()
+}
+ 
 def installed() {
     if ((device.currentState("level")?.value == null) || (device.currentState("level")?.value == 0)) {
         sendEvent(name: "level", value: 100)
