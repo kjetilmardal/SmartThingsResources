@@ -43,7 +43,7 @@ metadata {
         command "setColorEveryday"
         command "setColorFocus"
 	
-    	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS�opal 980lm", deviceJoinName: "TRÅDFRI bulb E27 WS opal 980lm"
+	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS�opal 980lm", deviceJoinName: "TRÅDFRI bulb E27 WS opal 980lm"
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS opal 980lm", deviceJoinName: "TRÅDFRI bulb E27 WS opal 980lm"
 	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E27 WS clear 950lm", deviceJoinName: "TRÅDFRI bulb E27 WS clear 950lm"
 	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb E26 WS�opal 980lm", deviceJoinName: "TRÅDFRI bulb E26 WS opal 980lm"
@@ -54,6 +54,10 @@ metadata {
     	fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B05, 1000", outClusters: "0005, 0019, 0020, 1000", manufacturer: "IKEA of Sweden",  model: "TRADFRI bulb GU10 WS 400lm", deviceJoinName: "TRÅDFRI bulb GU10 WS 400lm"
     }
 
+	preferences {
+        input "linkLevelAndColor", "boolean", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true
+    }
+    
     // UI tile definitions
     tiles(scale: 2) {
         multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4){
@@ -69,7 +73,7 @@ metadata {
         }
 
         controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 1, inactiveLabel: false, range:"(2200..4000)") {
-            state "colorTemperature", action:"color temperature.setColorTemperature"
+            state "colorTemperature", action:"setColorTemperature"
         }
         
         valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 4, height: 1) {
@@ -149,9 +153,17 @@ def on() {
 }
 
 def setLevel(value) {
-    // this will set the color temperature based on the level, 2200(0%) to 2700(100%)
-    // it's a bit more like how a traditional filament bulb behaves
-    zigbee.setLevel(value) + zigbee.setColorTemperature(2200 + (5*value))
+	def linkLevelAndColor = linkLevelAndColor ?: 'true'
+    
+    if(linkLevelAndColor.equals('true')){
+    	// this will set the color temperature based on the level, 2200(0%) to 2700(100%)
+    	// it's a bit more like how a traditional filament bulb behaves
+    	zigbee.setLevel(value) + zigbee.setColorTemperature(2200 + (5*value))
+    } else {
+	    log.debug "in the else"
+    	zigbee.setLevel(value)
+    }
+    
 }
 
 def setColorRelax() {
