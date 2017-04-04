@@ -54,7 +54,7 @@ metadata {
   }
 
   preferences {
-    input "linkLevelAndColor", "boolean", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true
+    input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: true
   }
 
   // UI tile definitions
@@ -155,9 +155,7 @@ def on() {
 }
 
 def setLevel(value) {
-  def linkLevelAndColor = linkLevelAndColor ?: 'true'
-
-  if(linkLevelAndColor.equals('true')){
+  if(linkLevelAndColor){
     // this will set the color temperature based on the level, 2200(0%) to 2700(100%)
     // it's a bit more like how a traditional filament bulb behaves
     zigbee.setLevel(value) + zigbee.setColorTemperature(2200 + (5*value))
