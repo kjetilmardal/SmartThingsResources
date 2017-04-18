@@ -182,6 +182,13 @@ def setColorFocus() {
 }
 
 def setColorTemperature(value) {
+  // This is added here just in case something calls this with a value that is out of range for the bulbs
+  if(value > 4000){
+    value = 4000;
+  } else if(value < 2200){
+    value = 2200;
+  }
+    
   setGenericName(value)
   zigbee.setColorTemperature(value)
 }
