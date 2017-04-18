@@ -41,20 +41,19 @@ metadata {
         fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0B04, FC0F", outClusters: "0019", manufacturer: "OSRAM", model: "Classic B40 TW - LIGHTIFY", deviceJoinName: "OSRAM LIGHTIFY Classic B40 Tunable White"
         fingerprint profileId: "0104", inClusters: "0000, 0003, 0004, 0005, 0006, 0008, 0300, 0702, 0B05", outClusters: "0019", manufacturer: "sengled", model: "Z01-A19NAE26", deviceJoinName: "Sengled Element plus"
     }
-
-	preferences {
-        section {
-            input ("minTemp", "number", title: "Minimum color temperature that this bulb supports", defaultValue: 2000, displayDuringSetup: true)
-            input ("maxTemp", "number", title: "Maximum color temperature that this bulb supports", defaultValue: 6500, displayDuringSetup: true)
-        }
+    
+    preferences {
+        input name: "minTemp", type: "number", title: "Minimum color temperature that this bulb supports", defaultValue: 2000, displayDuringSetup: true, required: false
+        input name: "maxTemp", type: "number", title: "Maximum color temperature that this bulb supports", defaultValue: 6500, displayDuringSetup: true, required: false
     }
+  
     // UI tile definitions
     tiles(scale: 2) {
         multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
             tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
-                attributeState "on", label:'${name}', action:"switch.off", icon:"st.switches.light.on", backgroundColor:"#79b821", nextState:"turningOff"
+                attributeState "on", label:'${name}', action:"switch.off", icon:"st.switches.light.on", backgroundColor:"#00a0dc", nextState:"turningOff"
                 attributeState "off", label:'${name}', action:"switch.on", icon:"st.switches.light.off", backgroundColor:"#ffffff", nextState:"turningOn"
-                attributeState "turningOn", label:'${name}', action:"switch.off", icon:"st.switches.light.on", backgroundColor:"#79b821", nextState:"turningOff"
+                attributeState "turningOn", label:'${name}', action:"switch.off", icon:"st.switches.light.on", backgroundColor:"#00a0dc", nextState:"turningOff"
                 attributeState "turningOff", label:'${name}', action:"switch.on", icon:"st.switches.light.off", backgroundColor:"#ffffff", nextState:"turningOn"
             }
             tileAttribute ("device.level", key: "SLIDER_CONTROL") {
@@ -67,7 +66,7 @@ metadata {
         }
 
         controlTile("colorTempSliderControl", "device.colorTemperature", "slider", width: 4, height: 2, inactiveLabel: false, range:"(0..100)") {
-            state "colorTemperature", action:"setColorTemperature"
+            state "colorTemperature", action:"setNormalizedColorTemperature"
         }
         valueTile("colorName", "device.colorName", inactiveLabel: false, decoration: "flat", width: 2, height: 2) {
             state "colorName", label: '${currentValue}'
@@ -147,8 +146,9 @@ def configure() {
 }
 
 def normalize(value){
-	def minimumTemperature = minTemp ?: 2000
+    def minimumTemperature = minTemp ?: 2000
     def maximumTemperature = maxTemp ?: 6500
+    
     def diff = maximumTemperature - minimumTemperature
     def normalizedValue = ((value-minimumTemperature)*100)/diff
     
@@ -156,7 +156,7 @@ def normalize(value){
 }
 
 def convertToTemperature(value){
-	def minimumTemperature = minTemp ?: 2000
+    def minimumTemperature = minTemp ?: 2000
     def maximumTemperature = maxTemp ?: 6500
     
     def temperature = (((maximumTemperature-minimumTemperature) / 100) * value) + minimumTemperature
@@ -164,19 +164,19 @@ def convertToTemperature(value){
     return temperature
 }
 
-def setColorTemperature(value){
+def setNormalizedColorTemperature(value){
 	def temperature = convertToTemperature(value)
-    setColorTemperatureTwo(temperature);
+    log.debug "temperature : ${temperature}"
+    setColorTemperature(temperature);
 }
 
-def setColorTemperatureTwo(value) {
+def setColorTemperature(value) {
     setGenericName(value)
     zigbee.setColorTemperature(value)
 }
 
 //Naming loosely based on this image https://www.downlights.co.uk/media/wysiwyg/Colour-Temperature-Chart.jpg
 def setGenericName(value){
-	log.debug "setGenericName value ${value}"
     if (value != null) {
         def genericName
         
