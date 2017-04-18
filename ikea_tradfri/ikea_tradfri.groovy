@@ -56,11 +56,12 @@ metadata {
   preferences {
     input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: true
     input name: "delay", type: "number", title: "Delay between level and color temperature change in milliseconds", defaultValue: 0, displayDuringSetup: true, required: false
+    input name: "colorNameAsKelvin", type: "bool", title: "Display color temperature as kelvin", defaultValue: false, displayDuringSetup: true, required: true
   }
 
   // UI tile definitions
   tiles(scale: 2) {
-    multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4){
+    multiAttributeTile(name:"switch", type: "lighting", width: 6, height: 4, canChangeIcon: true){
       tileAttribute ("device.switch", key: "PRIMARY_CONTROL") {
         attributeState "on", label:'${name}', action:"switch.off", icon:"st.switches.light.on", backgroundColor:"#00a0dc", nextState:"turningOff"
         attributeState "off", label:'${name}', action:"switch.on", icon:"st.switches.light.off", backgroundColor:"#ffffff", nextState:"turningOn"
@@ -186,18 +187,22 @@ def setColorTemperature(value) {
 }
 
 def setGenericName(value){
-  if (value != null) {
-    def genericName
+  if(colorNameAsKelvin){
+    sendEvent(name: "colorName", value: "${value} K" )
+  } else {
+    if (value != null) {
+      def genericName
 
-    if (value < 2450) {
-      genericName = "Relax" // 2200 is named Relax by IKEA so i use that for 2200-2449
-    } else if (value < 2950) {
-      genericName = "Everyday" // 2700 is named Everyday by IKEA so i use that for 2450-2949
-    } else if (value <= 4000) {
-      genericName = "Focus" // 4000 is named Focus by IKEA so i use that for 2950-4000
+      if (value < 2450) {
+        genericName = "Relax" // 2200 is named Relax by IKEA so i use that for 2200-2449
+      } else if (value < 2950) {
+        genericName = "Everyday" // 2700 is named Everyday by IKEA so i use that for 2450-2949
+      } else if (value <= 4000) {
+        genericName = "Focus" // 4000 is named Focus by IKEA so i use that for 2950-4000
+      }
+
+      sendEvent(name: "colorName", value: genericName)
     }
-
-    sendEvent(name: "colorName", value: genericName)
   }
 }
 
