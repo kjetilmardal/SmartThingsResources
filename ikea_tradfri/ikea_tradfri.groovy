@@ -12,6 +12,11 @@
  *
  *  IKEA Trådfri
  *
+ *  This handler is written so that the bulbs behave a bit more like traditional halogen bulbs and the ones i modeled it
+ *  after is https://www.osram.com/osram_com/products/lamps/halogen-lamps/halopar/halopar-16-gu10gz10-star/index.jsp
+ *  they have a color rendering index of 100 at full brightness and that is equivalent to 3200 kelvin. The level at 1%
+ *  will use 2200 kelvin and each percent will increse the temperature by 10 ending up at 3190 at 100%
+ *
  *  Author: Edvald Eysteinsson
  *  Date: 2017-03-18
  */
@@ -28,7 +33,7 @@ metadata {
 
     attribute "colorName", "string"
 
-    command "setGenericName"
+    command "setColorName"
     command "setColorRelax"
     command "setColorEveryday"
     command "setColorFocus"
@@ -45,7 +50,7 @@ metadata {
   }
 
   preferences {
-    input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: false
+    input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: true
     input name: "delay", type: "number", title: "Delay between level and color temperature change in milliseconds", defaultValue: 0, displayDuringSetup: true, required: false
     input name: "colorNameAsKelvin", type: "bool", title: "Display color temperature as kelvin", defaultValue: false, displayDuringSetup: true, required: false
   }
@@ -115,11 +120,9 @@ def parse(String description) {
   def event = zigbee.getEvent(description)
 
   if (event) {
-    if (event.name=="level" && event.value==0) {
-    
-    } else {
+    if (event.name != "level" || (event.name=="level" && event.value > 0)) {
       if (event.name=="colorTemperature") {
-        setGenericName(event.value)
+        setColorName(event.value)
       }
       sendEvent(event)
     }
@@ -148,15 +151,21 @@ def on() {
 }
 
 def setLevel(value) {
-  if(linkLevelAndColor ?: true){
-    // this will set the color temperature based on the level, 2200(0%) to 2700(100%)
-    // it's a bit more like how a traditional filament bulb behaves
-    delayBetween([
-        zigbee.setLevel(value),
-        zigbee.setColorTemperature(2200 + (5*value))
-    ], delay ?: 0)
-  } else {
+// In case the level is 0 we dont want to do anything with the color temperature
+  if(value == 0){
     zigbee.setLevel(value)
+  } else {
+    if(linkLevelAndColor ?: false){
+      // this will set the color temperature based on the level, 2200(1%) to 3195(100%)
+      // it's a bit more like how a traditional filament bulb behaves and since i prefer
+      // warmer tones i went with 1% being 2200 rather than 2205 =)
+      delayBetween([
+        zigbee.setLevel(value),
+        zigbee.setColorTemperature(2190 + (10*value))
+      ], delay ?: 0)
+    } else {
+      zigbee.setLevel(value)
+    }
   }
 }
 
@@ -180,11 +189,11 @@ def setColorTemperature(value) {
     value = 2200;
   }
     
-  setGenericName(value)
+  setColorName(value)
   zigbee.setColorTemperature(value)
 }
 
-def setGenericName(value){
+def setColorName(value){
   if(colorNameAsKelvin ?: false){
     sendEvent(name: "colorName", value: "${value} K" )
   } else {
