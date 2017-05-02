@@ -50,8 +50,10 @@ metadata {
   }
 
   preferences {
-    input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: true
+    input name: "linkLevelAndColor", type: "bool", title: "Link level change with color temperature?", defaultValue: true, displayDuringSetup: true, required: false
     input name: "delay", type: "number", title: "Delay between level and color temperature change in milliseconds", defaultValue: 0, displayDuringSetup: true, required: false
+    input name: "colorTempMin", type: "number", title: "Color temperature at lowest level(1%)", defaultValue: 2200, range: "2200..4000", displayDuringSetup: true, required: false
+    input name: "colorTempMax", type: "number", title: "Color temperature at highest level(100%)", defaultValue: 3200, range: "2200..4000", displayDuringSetup: true, required: false
     input name: "colorNameAsKelvin", type: "bool", title: "Display color temperature as kelvin", defaultValue: false, displayDuringSetup: true, required: false
   }
 
@@ -156,12 +158,19 @@ def setLevel(value) {
     zigbee.setLevel(value)
   } else {
     if(linkLevelAndColor ?: false){
-      // this will set the color temperature based on the level, 2200(1%) to 3195(100%)
-      // it's a bit more like how a traditional filament bulb behaves and since i prefer
-      // warmer tones i went with 1% being 2200 rather than 2205 =)
+      def colorTempMin = colorTempMin ?: 2200;
+      def colorTempMax = colorTempMax ?: 3200;
+      def stepSize = (colorTempMax - colorTempMin) / 99;
+      int colorTemperature = Math.ceil((colorTempMin - stepSize) + (stepSize*value));
+      
+      // this will set the color temperature based on the level, default color temperatures are
+      // 2200(1%) to 3200(100%) but they can be set in preferences.
+      // This is a bit more like how a traditional bulb behaves, it will turn warmer at lower levels.
+      // There is nothing preventing a user from doing the opposite, 4000 at 1% and 2200 at 100% if
+      // they feel like it.
       delayBetween([
         zigbee.setLevel(value),
-        zigbee.setColorTemperature(2190 + (10*value))
+        zigbee.setColorTemperature(colorTemperature)
       ], delay ?: 0)
     } else {
       zigbee.setLevel(value)
